@@ -26,6 +26,8 @@ namespace bttf {
 
 using namespace boost::interprocess;
 
+#if 1
+
 size_t calc_checksum(const fs::path& file)
 {
    file_mapping mapping(file.string().c_str(), read_only);
@@ -36,6 +38,35 @@ size_t calc_checksum(const fs::path& file)
 
    return boost::hash_range(data, data + size);
 }
+
+#else
+
+// alternative implementation
+size_t calc_checksum(const fs::path& file)
+{
+   auto size = fs::file_size(file);
+
+   fs::ifstream ifs;
+   ifs.exceptions(std::ifstream::badbit);
+   ifs.open(file, std::ios::binary);
+
+   const size_t BUF_SIZE = 256 * 1024ULL;
+
+   std::vector<char> buffer(BUF_SIZE);
+   auto remain = size;
+
+   size_t hash = 0;
+   while (remain > 0)
+   {
+      ifs.read(buffer.data(), std::min(remain, BUF_SIZE));
+      size_t read_bytes = ifs.gcount();
+      boost::hash_range(hash, buffer.data(), buffer.data() + read_bytes);
+      remain -= read_bytes;
+   }
+   return hash;
+}
+
+#endif
 
 bool equal_files(const fs::path& a, const fs::path& b)
 {
