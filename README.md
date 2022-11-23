@@ -27,9 +27,11 @@ cmake --build . --config=Release
 if ERRORLEVEL 1  goto exit
 
 echo build OK
+
 %cd%\Release\BackToTheFuture.exe --help
 
 :exit
+
 cd ..
 
 
